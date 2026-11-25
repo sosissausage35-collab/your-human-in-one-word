@@ -13,7 +13,7 @@
 // /output/entry.txt and validates it against the competition gate
 // (UTF-8 text, 1-30 characters, not only whitespace, a single word).
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 // The word. One token of letters, no spaces, no punctuation.
 const WORD = "Puppeteer";
@@ -45,4 +45,11 @@ if (!/^[A-Za-z]+$/.test(WORD)) {
 
 mkdirSync("/output", { recursive: true });
 writeFileSync(OUTPUT_PATH, WORD, "utf8");
-console.log(`wrote ${chars.length}-character word to ${OUTPUT_PATH}`);
+// Parent revision: verify the write round-tripped exactly — the grader
+// reads this file, so a silent partial write must fail loudly here.
+const written = readFileSync(OUTPUT_PATH, "utf8");
+if (written !== WORD) {
+  fail("entry.txt does not match the validated word");
+}
+const bytes = Buffer.byteLength(WORD, "utf8");
+console.log(`wrote ${chars.length}-character word (${bytes} bytes) to ${OUTPUT_PATH}`);
